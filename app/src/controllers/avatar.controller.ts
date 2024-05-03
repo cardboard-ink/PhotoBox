@@ -1,5 +1,5 @@
 import Elysia from "elysia"
-import { browser, checkAvatarExists, getAvatar, getAvatarLastModified, guildedProfileScrape, streamToBuffer, uploadAvatar } from "../libs"
+import { checkAvatarExists, getAvatar, getAvatarLastModified, guildedProfileScrape, streamToBuffer } from "../libs"
 
 export const avatarController = new Elysia()
     .get('/:id', async ({ params }) => {
