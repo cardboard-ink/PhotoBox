@@ -16,6 +16,15 @@ const ensureBucket = async (bucketName: string) => {
     }
 }
 
+export const streamToBuffer = (stream: Readable): Promise<Buffer> => {
+    return new Promise((resolve, reject) => {
+        const chunks: any[] = [];
+        stream.on('data', (chunk) => chunks.push(chunk));
+        stream.on('error', reject);
+        stream.on('end', () => resolve(Buffer.concat(chunks)));
+    });
+}
+
 const uploadImageToBucket = async (bucketName: string, id: string, url: string) => {
     await ensureBucket(bucketName);
     const res = await fetch(url);
@@ -32,15 +41,6 @@ const uploadImageToBucket = async (bucketName: string, id: string, url: string) 
         'Content-Type': 'image/webp',
     };
     await minioClient.putObject(bucketName, `${id}.webp`, buffer, buffer.length, metaData);
-}
-
-export const streamToBuffer = (stream: Readable): Promise<Buffer> => {
-    return new Promise((resolve, reject) => {
-        const chunks: any[] = [];
-        stream.on('data', (chunk) => chunks.push(chunk));
-        stream.on('error', reject);
-        stream.on('end', () => resolve(Buffer.concat(chunks)));
-    });
 }
 
 const BANNERS_BUCKET = 'banners';
