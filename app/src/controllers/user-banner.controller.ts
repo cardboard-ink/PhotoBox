@@ -1,17 +1,17 @@
 import { Elysia, t } from "elysia"
-import { checkBannerExists, getBanner, getBannerLastModified, guildedProfileScrape, streamToBuffer } from "../libs"
+import { checkUserBannerExists, getUserBanner, getUserBannerLastModified, guildedUserProfileScrape, streamToBuffer } from "../libs"
 
-export const bannerController = new Elysia()
+export const userBannerController = new Elysia()
     .get('/:id', async ({ params }) => {
-        if (await checkBannerExists(params.id)) {
-            const lastModified = await getBannerLastModified(params.id)
+        if (await checkUserBannerExists(params.id)) {
+            const lastModified = await getUserBannerLastModified(params.id)
             if (Date.now() - lastModified.valueOf() > 5 * 60 * 1000) {
-                guildedProfileScrape(params.id, 'banner')
+                guildedUserProfileScrape(params.id, 'banner')
             }
-            const banner = await getBanner(params.id)
+            const banner = await getUserBanner(params.id)
             return new Response(await streamToBuffer(banner), { headers: { 'Content-Type': 'image/webp' } })
         }
-        const imageBlob = await guildedProfileScrape(params.id, 'banner')
+        const imageBlob = await guildedUserProfileScrape(params.id, 'banner')
         return new Response(imageBlob, { headers: { 'Content-Type': 'image/webp' } })
     }, {
         params: t.Object({
@@ -30,7 +30,7 @@ export const bannerController = new Elysia()
         {description: 'The banner image.'}),
         detail: {
             description: 'Get the banner of a user by their ID.',
-            summary: 'Get banner by ID.',
-            tags: ['banner'],
+            summary: 'Get user banner by ID.',
+            tags: ['user'],
         }
     })

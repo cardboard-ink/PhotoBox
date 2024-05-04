@@ -1,18 +1,18 @@
 import { Elysia, t } from "elysia"
-import { checkAvatarExists, getAvatar, getAvatarLastModified, guildedProfileScrape, streamToBuffer } from "../libs"
+import { checkServerIconExists, getServerIcon, getServerIconLastModified, guildedServerProfileScrape, streamToBuffer } from "../libs"
 
-export const avatarController = new Elysia()
+export const serverIconController = new Elysia()
     .get('/:id', async ({ params }) => {
-        if (await checkAvatarExists(params.id)) {
-            const lastModified = await getAvatarLastModified(params.id)
+        if (await checkServerIconExists(params.id)) {
+            const lastModified = await getServerIconLastModified(params.id)
             if (Date.now() - lastModified.valueOf() > 5 * 60 * 1000) {
-                guildedProfileScrape(params.id, 'avatar')
+                guildedServerProfileScrape(params.id, 'icon')
             }
-            const avatar = await getAvatar(params.id)
+            const avatar = await getServerIcon(params.id)
             const res = new Response(await streamToBuffer(avatar), { headers: { 'Content-Type': 'image/webp' } })
             return res
         }
-        const imageBlob = await guildedProfileScrape(params.id, 'avatar')
+        const imageBlob = await guildedServerProfileScrape(params.id, 'icon')
         const res = new Response(imageBlob, { headers: { 'Content-Type': 'image/webp' } })
         return res
     }, {
@@ -29,10 +29,10 @@ export const avatarController = new Elysia()
                     minSize: '0k'
                 }),
         },
-        {description: 'The avatar image.'}),
+        {description: 'The server icon image.'}),
         detail: {
-            description: 'Get the avatar of a user by their ID.',
-            summary: 'Get avatar by ID.',
-            tags: ['avatar'],
+            description: "Get the server icon of a server by it's ID.",
+            summary: 'Get server icon by ID.',
+            tags: ['server'],
         }
     })

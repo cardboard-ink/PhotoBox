@@ -43,91 +43,115 @@ const uploadImageToBucket = async (bucketName: string, id: string, url: string) 
     await minioClient.putObject(bucketName, `${id}.webp`, buffer, buffer.length, metaData);
 }
 
-const BANNERS_BUCKET = 'banners';
-const AVATARS_BUCKET = 'avatars';
-
-export const uploadAvatar = async (id: string, avatarUrl: string) => {
-    await uploadImageToBucket(AVATARS_BUCKET, id, avatarUrl);
-}
-
-export const checkAvatarExists = async (id: string) => {
-    const exists = await minioClient.bucketExists(AVATARS_BUCKET);
+export const checkAssetExists = async (bucketName: string, id: string) => {
+    const exists = await minioClient.bucketExists(bucketName);
     if (!exists) {
         return false;
     }
     try {
-        await minioClient.statObject(AVATARS_BUCKET, `${id}.webp`);
+        await minioClient.statObject(bucketName, `${id}.webp`);
         return true;
     } catch (e) {
         return false;
     }
 }
 
-export const getAvatar = async (id: string) => {
-    const exists = await checkAvatarExists(id);
+export const getAssetLastModified = async (bucketName: string, id: string) => {
+    const exists = await checkAssetExists(bucketName, id);
     if (!exists) {
-        throw new Error(`Avatar with ID ${id} does not exist.`);
+        throw new Error(`Asset with ID ${id} does not exist in ${bucketName}.`);
     }
     try {
-        const stream = await minioClient.getObject(AVATARS_BUCKET, `${id}.webp`);
-        return stream;
-    } catch (e) {
-        throw new Error(`Failed to retrieve avatar with ID ${id}.`);
-    }
-}
-
-export const getAvatarLastModified = async (id: string) => {
-    const exists = await checkAvatarExists(id);
-    if (!exists) {
-        throw new Error(`Avatar with ID ${id} does not exist.`);
-    }
-    try {
-        const metaData = await minioClient.statObject(AVATARS_BUCKET, `${id}.webp`);
+        const metaData = await minioClient.statObject(bucketName, `${id}.webp`);
         return metaData.lastModified;
     } catch (e) {
-        throw new Error(`Failed to retrieve last modified date for avatar with ID ${id}.`);
+        throw new Error(`Failed to retrieve last modified date for asset with ID ${id}.`);
     }
 }
 
-export const uploadBanner = async (id: string, avatarUrl: string) => {
-    await uploadImageToBucket(BANNERS_BUCKET, id, avatarUrl);
-}
-
-export const checkBannerExists = async (id: string) => {
-    const exists = await minioClient.bucketExists(BANNERS_BUCKET);
+export const getAsset = async (bucketName: string, id: string) => {
+    const exists = await checkAssetExists(bucketName, id);
     if (!exists) {
-        return false;
+        throw new Error(`Asset with ID ${id} does not exist in ${bucketName}.`);
     }
     try {
-        await minioClient.statObject(BANNERS_BUCKET, `${id}.webp`);
-        return true;
-    } catch (e) {
-        return false;
-    }
-}
-
-export const getBanner = async (id: string) => {
-    const exists = await checkBannerExists(id);
-    if (!exists) {
-        throw new Error(`Banner with ID ${id} does not exist.`);
-    }
-    try {
-        const stream = await minioClient.getObject(BANNERS_BUCKET, `${id}.webp`);
+        const stream = await minioClient.getObject(bucketName, `${id}.webp`);
         return stream;
     } catch (e) {
-        throw new Error(`Failed to retrieve banner with ID ${id}.`);
+        throw new Error(`Failed to retrieve asset with ID ${id} from ${bucketName}.`);
     }
+
 }
 
-export const getBannerLastModified = async (id: string) => {
-    const exists = await checkBannerExists(id);
-    if (!exists) {
-        throw new Error(`Banner with ID ${id} does not exist.`);
-    }
-    try {
-        const metaData = await minioClient.statObject(BANNERS_BUCKET, `${id}.webp`);
-        return metaData.lastModified;
-    } catch (e) {
-        throw new Error(`Failed to retrieve last modified date for banner with ID ${id}.`);
-    }
+const USER_BANNERS_BUCKET = 'user-banners';
+const USER_AVATARS_BUCKET = 'user-avatars';
+const SERVER_BANNERS_BUCKET = 'server-banners';
+const SERVER_ICONS_BUCKET = 'server-icons';
+
+export const uploadUserAvatar = async (id: string, avatarUrl: string) => {
+    await ensureBucket(USER_AVATARS_BUCKET);
+    await uploadImageToBucket(USER_AVATARS_BUCKET, id, avatarUrl);
+}
+
+export const getUserAvatar = async (id: string) => {
+    return getAsset(USER_AVATARS_BUCKET, id);
+}
+
+export const getUserAvatarLastModified = async (id: string) => {
+    return getAssetLastModified(USER_AVATARS_BUCKET, id);
+}
+
+export const checkUserAvatarExists = async (id: string) => {
+    return checkAssetExists(USER_AVATARS_BUCKET, id);
+}
+
+export const uploadUserBanner = async (id: string, avatarUrl: string) => {
+    await ensureBucket(USER_BANNERS_BUCKET);
+    await uploadImageToBucket(USER_BANNERS_BUCKET, id, avatarUrl);
+}
+
+export const getUserBanner = async (id: string) => {
+    return getAsset(USER_BANNERS_BUCKET, id);
+}
+
+export const getUserBannerLastModified = async (id: string) => {
+    return getAssetLastModified(USER_BANNERS_BUCKET, id);
+}
+
+export const checkUserBannerExists = async (id: string) => {
+    return checkAssetExists(USER_BANNERS_BUCKET, id);
+}
+
+export const uploadServerIcon = async (id: string, avatarUrl: string) => {
+    await ensureBucket(SERVER_ICONS_BUCKET);
+    await uploadImageToBucket(SERVER_ICONS_BUCKET, id, avatarUrl);
+}
+
+export const getServerIcon = async (id: string) => {
+    return getAsset(SERVER_ICONS_BUCKET, id);
+}
+
+export const getServerIconLastModified = async (id: string) => {
+    return getAssetLastModified(SERVER_ICONS_BUCKET, id);
+}
+
+export const checkServerIconExists = async (id: string) => {
+    return checkAssetExists(SERVER_ICONS_BUCKET, id);
+}
+
+export const uploadServerBanner = async (id: string, avatarUrl: string) => {
+    await ensureBucket(SERVER_BANNERS_BUCKET);
+    await uploadImageToBucket(SERVER_BANNERS_BUCKET, id, avatarUrl);
+}
+
+export const getServerBanner = async (id: string) => {
+    return getAsset(SERVER_BANNERS_BUCKET, id);
+}
+
+export const getServerBannerLastModified = async (id: string) => {
+    return getAssetLastModified(SERVER_BANNERS_BUCKET, id);
+}
+
+export const checkServerBannerExists = async (id: string) => {
+    return checkAssetExists(SERVER_BANNERS_BUCKET, id);
 }
