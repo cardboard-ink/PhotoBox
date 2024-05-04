@@ -1,14 +1,14 @@
 import { Elysia, t } from "elysia"
-import { checkServerIconExists, getServerIcon, getServerIconLastModified, guildedServerProfileScrape, streamToBuffer } from "../libs"
+import { serverIconBucket, guildedServerProfileScrape, streamToBuffer } from "../libs"
 
 export const serverIconController = new Elysia()
     .get('/:id', async ({ params }) => {
-        if (await checkServerIconExists(params.id)) {
-            const lastModified = await getServerIconLastModified(params.id)
+        if (await serverIconBucket.checkAssetExists(params.id)) {
+            const lastModified = await serverIconBucket.getAssetLastModified(params.id)
             if (Date.now() - lastModified.valueOf() > 5 * 60 * 1000) {
                 guildedServerProfileScrape(params.id, 'icon')
             }
-            const avatar = await getServerIcon(params.id)
+            const avatar = await serverIconBucket.getAsset(params.id)
             const res = new Response(await streamToBuffer(avatar), { headers: { 'Content-Type': 'image/webp' } })
             return res
         }

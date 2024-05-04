@@ -83,75 +83,35 @@ export const getAsset = async (bucketName: string, id: string) => {
 
 }
 
-const USER_BANNERS_BUCKET = 'user-banners';
-const USER_AVATARS_BUCKET = 'user-avatars';
-const SERVER_BANNERS_BUCKET = 'server-banners';
-const SERVER_ICONS_BUCKET = 'server-icons';
+export class BucketManager {
+    private bucketName: string;
+    constructor(bucketName: string) {
+        this.bucketName = bucketName;
+    }
 
-export const uploadUserAvatar = async (id: string, avatarUrl: string) => {
-    await ensureBucket(USER_AVATARS_BUCKET);
-    await uploadImageToBucket(USER_AVATARS_BUCKET, id, avatarUrl);
+    async ensureBucket() {
+        await ensureBucket(this.bucketName);
+    }
+
+    async uploadImage(id: string, url: string) {
+        await this.ensureBucket();
+        await uploadImageToBucket(this.bucketName, id, url);
+    }
+
+    async checkAssetExists(id: string) {
+        return checkAssetExists(this.bucketName, id);
+    }
+
+    async getAssetLastModified(id: string) {
+        return getAssetLastModified(this.bucketName, id);
+    }
+
+    async getAsset(id: string) {
+        return getAsset(this.bucketName, id);
+    }
 }
 
-export const getUserAvatar = async (id: string) => {
-    return getAsset(USER_AVATARS_BUCKET, id);
-}
-
-export const getUserAvatarLastModified = async (id: string) => {
-    return getAssetLastModified(USER_AVATARS_BUCKET, id);
-}
-
-export const checkUserAvatarExists = async (id: string) => {
-    return checkAssetExists(USER_AVATARS_BUCKET, id);
-}
-
-export const uploadUserBanner = async (id: string, avatarUrl: string) => {
-    await ensureBucket(USER_BANNERS_BUCKET);
-    await uploadImageToBucket(USER_BANNERS_BUCKET, id, avatarUrl);
-}
-
-export const getUserBanner = async (id: string) => {
-    return getAsset(USER_BANNERS_BUCKET, id);
-}
-
-export const getUserBannerLastModified = async (id: string) => {
-    return getAssetLastModified(USER_BANNERS_BUCKET, id);
-}
-
-export const checkUserBannerExists = async (id: string) => {
-    return checkAssetExists(USER_BANNERS_BUCKET, id);
-}
-
-export const uploadServerIcon = async (id: string, avatarUrl: string) => {
-    await ensureBucket(SERVER_ICONS_BUCKET);
-    await uploadImageToBucket(SERVER_ICONS_BUCKET, id, avatarUrl);
-}
-
-export const getServerIcon = async (id: string) => {
-    return getAsset(SERVER_ICONS_BUCKET, id);
-}
-
-export const getServerIconLastModified = async (id: string) => {
-    return getAssetLastModified(SERVER_ICONS_BUCKET, id);
-}
-
-export const checkServerIconExists = async (id: string) => {
-    return checkAssetExists(SERVER_ICONS_BUCKET, id);
-}
-
-export const uploadServerBanner = async (id: string, avatarUrl: string) => {
-    await ensureBucket(SERVER_BANNERS_BUCKET);
-    await uploadImageToBucket(SERVER_BANNERS_BUCKET, id, avatarUrl);
-}
-
-export const getServerBanner = async (id: string) => {
-    return getAsset(SERVER_BANNERS_BUCKET, id);
-}
-
-export const getServerBannerLastModified = async (id: string) => {
-    return getAssetLastModified(SERVER_BANNERS_BUCKET, id);
-}
-
-export const checkServerBannerExists = async (id: string) => {
-    return checkAssetExists(SERVER_BANNERS_BUCKET, id);
-}
+export const userAvatarBucket = new BucketManager('user-banners');
+export const userBannerBucket = new BucketManager('user-avatars');
+export const serverIconBucket = new BucketManager('server-banners');
+export const serverBannerBucket = new BucketManager('server-icons');

@@ -1,14 +1,14 @@
 import { Elysia, t } from "elysia"
-import { checkUserAvatarExists, getUserAvatar, getUserAvatarLastModified, guildedUserProfileScrape, streamToBuffer } from "../libs"
+import { userAvatarBucket, guildedUserProfileScrape, streamToBuffer } from "../libs"
 
 export const userAvatarController = new Elysia()
     .get('/:id', async ({ params }) => {
-        if (await checkUserAvatarExists(params.id)) {
-            const lastModified = await getUserAvatarLastModified(params.id)
+        if (await userAvatarBucket.checkAssetExists(params.id)) {
+            const lastModified = await userAvatarBucket.getAssetLastModified(params.id)
             if (Date.now() - lastModified.valueOf() > 5 * 60 * 1000) {
                 guildedUserProfileScrape(params.id, 'avatar')
             }
-            const avatar = await getUserAvatar(params.id)
+            const avatar = await userAvatarBucket.getAsset(params.id)
             const res = new Response(await streamToBuffer(avatar), { headers: { 'Content-Type': 'image/webp' } })
             return res
         }

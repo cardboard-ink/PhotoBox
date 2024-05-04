@@ -1,4 +1,4 @@
-import { uploadServerIcon, uploadServerBanner, uploadUserAvatar, uploadUserBanner } from "./minio"
+import { userAvatarBucket, userBannerBucket, serverBannerBucket, serverIconBucket } from "./minio"
 import puppeteer, { Browser } from "puppeteer";
 
 export let browserInstances: Browser[] = []
@@ -11,9 +11,9 @@ export const guildedUserProfileScrape = async (id: string, getElement: 'avatar' 
     await page.goto(`https://guilded.gg/profile/${id}`, {waitUntil: 'networkidle0'})
     const src = await page.$eval(getClass, (el: any) => el.src)
     if (getElement === 'avatar') {
-        await uploadUserAvatar(id, src)
+        await userAvatarBucket.uploadImage(id, src)
     } else if (getElement === 'banner') {
-        await uploadUserBanner(id, src)
+        await userBannerBucket.uploadImage(id, src)
     }
     await page.close()
     await browser.close()
@@ -29,9 +29,9 @@ export const guildedServerProfileScrape = async (id: string, getElement: 'icon' 
     await page.goto(`https://www.guilded.gg/teams/${id}/overview`, {waitUntil: 'networkidle0'})
     const src = await page.$eval(getClass, (el: any) => el.src)
     if (getElement === 'icon') {
-        await uploadServerIcon(id, src)
+        await serverIconBucket.uploadImage(id, src)
     } else if (getElement === 'banner') {
-        await uploadServerBanner(id, src)
+        await serverBannerBucket.uploadImage(id, src)
     }
     await page.close()
     await browser.close()

@@ -1,14 +1,14 @@
 import { Elysia, t } from "elysia"
-import { checkUserBannerExists, getUserBanner, getUserBannerLastModified, guildedUserProfileScrape, streamToBuffer } from "../libs"
+import { userBannerBucket, guildedUserProfileScrape, streamToBuffer } from "../libs"
 
 export const userBannerController = new Elysia()
     .get('/:id', async ({ params }) => {
-        if (await checkUserBannerExists(params.id)) {
-            const lastModified = await getUserBannerLastModified(params.id)
+        if (await userBannerBucket.checkAssetExists(params.id)) {
+            const lastModified = await userBannerBucket.getAssetLastModified(params.id)
             if (Date.now() - lastModified.valueOf() > 5 * 60 * 1000) {
                 guildedUserProfileScrape(params.id, 'banner')
             }
-            const banner = await getUserBanner(params.id)
+            const banner = await userBannerBucket.getAsset(params.id)
             return new Response(await streamToBuffer(banner), { headers: { 'Content-Type': 'image/webp' } })
         }
         const imageBlob = await guildedUserProfileScrape(params.id, 'banner')
