@@ -14,7 +14,7 @@ export const guildedUserProfileScrape: (id: string, getElement: 'avatar' | 'bann
         browserInstances.push(browser)
         const page = await browser.newPage()
         try {
-            await page.goto(`https://www.guilded.gg/profile/${id}`, {waitUntil: 'networkidle0', timeout: 13000})
+            await page.goto(`https://www.guilded.gg/profile/${id}`, {waitUntil: 'networkidle0'})
         } catch (e) {
             throw new Error(`User not found,\nError:\n${e}`)
         }
@@ -43,7 +43,7 @@ export const guildedServerProfileScrape: (id: string, getElement: 'icon' | 'bann
         })
         browserInstances.push(browser)
         const page = await browser.newPage()
-        await page.goto(`https://www.guilded.gg/teams/${id}/overview`, {waitUntil: 'networkidle0', timeout: 13000})
+        await page.goto(`https://www.guilded.gg/teams/${id}/overview`, {waitUntil: 'networkidle0'})
         const src = await page.$eval(getClass, (el: any) => el.src)
         if (getElement === 'icon') {
             await serverIconBucket.uploadImage(id, src)
