@@ -7,11 +7,11 @@ x-minio-common: &minio-common
     MINIO_ROOT_USER: ${MINIO_ROOT_USER:?Enter the Minio Root User}
     MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?Enter the Minio Root Password}
     MINIO_CONSOLE_PORT: ${MINIO_CONSOLE_PORT:?Enter the Minio Console Port}
+    MINIO_PORT: ${MINIO_PORT:?Enter the Minio Port}
   command: server --console-address ":${MINIO_CONSOLE_PORT}" /mnt/data
   ports:
     - "${MINIO_CONSOLE_PORT}:${MINIO_CONSOLE_PORT}"
-  expose:
-    - "9000"
+    - "${MINIO_PORT}:9000"
   healthcheck:
     test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
     interval: 30s
@@ -34,7 +34,7 @@ services:
       MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:?Enter the Minio Secret Key from the Admin Dashboard}
     build: 
       context: .
-      dockerfile: ./docker/dev/app.dockerfile
+      dockerfile: ./docker/app.dockerfile
     container_name: photobox-app
     volumes:
       - ./app:/app

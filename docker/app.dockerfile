@@ -1,8 +1,8 @@
-FROM oven/bun:1.1.7-slim
+FROM oven/bun:1.1.7-debian
 
 WORKDIR /app
 
 COPY ./app/package.json ./
 COPY ./app/bun.lockb ./
 
-CMD bun start;
+CMD bun i; bun start;
