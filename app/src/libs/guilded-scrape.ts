@@ -12,7 +12,11 @@ export const guildedUserProfileScrape = async (id: string, getElement: 'avatar' 
     })
     browserInstances.push(browser)
     const page = await browser.newPage()
-    await page.goto(`https://guilded.gg/profile/${id}`, {waitUntil: 'networkidle0'})
+    try {
+        await page.goto(`https://www.guilded.gg/profile/${id}`, {waitUntil: 'networkidle0', timeout: 13000})
+    } catch (e) {
+        throw new Error(`User not found,\nError:\n${e}`)
+    }
     const src = await page.$eval(getClass, (el: any) => el.src)
     if (getElement === 'avatar') {
         await userAvatarBucket.uploadImage(id, src)
@@ -34,7 +38,11 @@ export const guildedServerProfileScrape = async (id: string, getElement: 'icon' 
     })
     browserInstances.push(browser)
     const page = await browser.newPage()
-    await page.goto(`https://www.guilded.gg/teams/${id}/overview`, {waitUntil: 'networkidle0'})
+    try {
+        await page.goto(`https://www.guilded.gg/teams/${id}/overview`, {waitUntil: 'networkidle0', timeout: 13000})
+    } catch (e) {
+        throw new Error(`Server not found,\nError:\n${e}`)
+    }
     const src = await page.$eval(getClass, (el: any) => el.src)
     if (getElement === 'icon') {
         await serverIconBucket.uploadImage(id, src)
