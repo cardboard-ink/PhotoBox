@@ -7,11 +7,11 @@ export const guildedUserProfileScrape = async (id: string, getElement: 'avatar' 
     console.log('Reached Scraper')
     const getClass = getElement === 'avatar' ? '.UserProfilePictureControl-picture' : '.UserProfileBackground-image'
     console.log('launching puppeteer')
-    const browser = await puppeteer.launch().catch((e) => {
-        console.error(e)
-        return
+    const browser = await puppeteer.launch({ 
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        executablePath: "/usr/bin/chromium",
     })
-    if (!browser) return
     console.log('puppeteer launched')
     browserInstances.push(browser)
     console.log('opening new page')
@@ -38,7 +38,11 @@ export const guildedUserProfileScrape = async (id: string, getElement: 'avatar' 
 
 export const guildedServerProfileScrape = async (id: string, getElement: 'icon' | 'banner') => {
     const getClass = getElement === 'icon' ? '.TeamPlaqueV2-profile-pic' : '.TeamOverviewBanner-banner.TeamPageBanner-overview-banner'
-    const browser = await puppeteer.launch()
+    const browser = await puppeteer.launch({ 
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        executablePath: "/usr/bin/chromium",
+    })
     browserInstances.push(browser)
     const page = await browser.newPage()
     await page.goto(`https://www.guilded.gg/teams/${id}/overview`, {waitUntil: 'networkidle0'})
