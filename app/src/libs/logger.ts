@@ -1,5 +1,4 @@
 import chalk from 'chalk';
-import { browserInstances } from './guilded-scrape';
 
 function requestLogger(ctx: any) {
   if (process.env.NODE_ENV === 'development') {
@@ -43,9 +42,6 @@ function bootLogger() {
 const gracefulShutdown = async () => {
   console.log(chalk.yellowBright('shutting down gracefully (5 seconds) ....'));
   // disconnet DB and other services...
-  for (const browser of browserInstances) {
-    await browser.close();
-  }
   setTimeout(() => {
     console.log('good bye');
     process.exit();
