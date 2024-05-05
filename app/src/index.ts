@@ -21,7 +21,7 @@ try {
       documentation: {
         info: {
           title: 'PhotoBox API',
-          description: 'API for fetching user and server avatars and banners from Guilded. The internal CDN caches the images for 5 minutes for fast response. This API is scraping based and thus does not get rate limited by Guilded, however it tries to stay respectful and not overload the servers.',
+          description: 'API for fetching user and server avatars and banners from Guilded. The internal CDN caches the images for 5 minutes for fast response on pages that require same image again and again to prevent heavy load. The images are fetched from public Guilded endpoints and CORS is allowed for everyone.',
           version: '1.0.0',
         },
         servers: [{ url: 'https://photobox.cardboard.ink' }, { url: `http://localhost:${process.env.PORT}` }],
