@@ -6,6 +6,9 @@ export let browserInstances: Browser[] = []
 export const guildedUserProfileScrape: (id: string, getElement: 'avatar' | 'banner') => Promise<Blob|Error> = async (id: string, getElement: 'avatar' | 'banner') => {
     try {
         const getClass = getElement === 'avatar' ? '.UserProfilePictureControl-picture' : '.UserProfileBackground-image'
+        if (browserInstances.length > 5) {
+            throw new Error('Too many requests')
+        }
         const browser = await puppeteer.launch({ 
             headless: true,
             args: ['--no-sandbox', '--disable-setuid-sandbox'],
@@ -36,6 +39,9 @@ export const guildedUserProfileScrape: (id: string, getElement: 'avatar' | 'bann
 export const guildedServerProfileScrape: (id: string, getElement: 'icon' | 'banner') => Promise<Blob | Error> = async (id, getElement) => {
     try {
         const getClass = getElement === 'icon' ? '.TeamPlaqueV2-profile-pic' : '.TeamOverviewBanner-banner.TeamPageBanner-overview-banner'
+        if (browserInstances.length > 5) {
+            throw new Error('Too many requests')
+        }
         const browser = await puppeteer.launch({ 
             headless: true,
             args: ['--no-sandbox', '--disable-setuid-sandbox'],
