@@ -12,6 +12,9 @@ export const serverBannerController = new Elysia()
             return new Response(await streamToBuffer(banner), { headers: { 'Content-Type': 'image/webp' } })
         }
         const imageBlob = await guildedServerProfileScrape(params.id, 'banner')
+        if (imageBlob instanceof Error) {
+            return new Response('User not found', { status: 404 })
+        }
         return new Response(imageBlob, { headers: { 'Content-Type': 'image/webp' } })
     }, {
         params: t.Object({

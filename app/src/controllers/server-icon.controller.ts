@@ -13,6 +13,9 @@ export const serverIconController = new Elysia()
             return res
         }
         const imageBlob = await guildedServerProfileScrape(params.id, 'icon')
+        if (imageBlob instanceof Error) {
+            return new Response('User not found', { status: 404 })
+        }
         const res = new Response(imageBlob, { headers: { 'Content-Type': 'image/webp' } })
         return res
     }, {
