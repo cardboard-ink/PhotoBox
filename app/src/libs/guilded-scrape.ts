@@ -9,13 +9,10 @@ const browser = await puppeteer.launch({
 
 export const guildedUserProfileScrape: (id: string, getElement: 'avatar' | 'banner') => Promise<Blob|Error> = async (id: string, getElement: 'avatar' | 'banner') => {
     try {
-        const getClass = getElement === 'avatar' ? '.UserProfilePictureControl-picture' : '.UserProfileBackground-image'
+        const getClass = getElement === 'avatar' ? '.ProgressiveLoadedImage-container.ProgressiveLoadedImage-container-progressive-loaded.ProgressiveLoadedImage-container-src-loaded>.UserProfilePictureControl-picture' : '.ProgressiveLoadedImage-container.ProgressiveLoadedImage-container-progressive-loaded.ProgressiveLoadedImage-container-src-loaded.ProgressiveLoadedImage-container-cover>.UserProfileBackground-image'
         const page = await browser.newPage()
-        try {
-            await page.goto(`https://www.guilded.gg/profile/${id}`, {waitUntil: 'networkidle0'})
-        } catch (e) {
-            throw new Error(`User not found,\nError:\n${e}`)
-        }
+        await page.goto(`https://www.guilded.gg/profile/${id}`)
+        await page.waitForSelector(getClass)
         const src = await page.$eval(getClass, (el: any) => el.src)
         if (getElement === 'avatar') {
             await userAvatarBucket.uploadImage(id, src)
@@ -31,9 +28,14 @@ export const guildedUserProfileScrape: (id: string, getElement: 'avatar' | 'bann
 
 export const guildedServerProfileScrape: (id: string, getElement: 'icon' | 'banner') => Promise<Blob | Error> = async (id, getElement) => {
     try {
-        const getClass = getElement === 'icon' ? '.TeamPlaqueV2-profile-pic' : '.TeamOverviewBanner-banner.TeamPageBanner-overview-banner'
+        const getClass = getElement === 'icon' ? '.ProgressiveLoadedImage-container.ProgressiveLoadedImage-container-progressive-loaded.ProgressiveLoadedImage-container-src-loaded>.TeamPlaqueV2-profile-pic' : '.ProgressiveLoadedImage-container.ProgressiveLoadedImage-container-progressive-loaded.ProgressiveLoadedImage-container-src-loaded>.TeamOverviewBanner-banner.TeamPageBanner-overview-banner'
         const page = await browser.newPage()
-        await page.goto(`https://www.guilded.gg/teams/${id}/overview`, {waitUntil: 'networkidle0'})
+        await page.goto(`https://www.guilded.gg/teams/${id}/overview`)
+        await page.waitForSelector(getClass)
+        await page.waitForFunction((getClass) => {
+            const img = document.querySelector(getClass) as HTMLImageElement;
+            return img.complete && img.naturalHeight !== 0;
+        }, {}, getClass);
         const src = await page.$eval(getClass, (el: any) => el.src)
         if (getElement === 'icon') {
             await serverIconBucket.uploadImage(id, src)

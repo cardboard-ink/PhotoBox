@@ -111,7 +111,7 @@ export class BucketManager {
     }
 }
 
-export const userAvatarBucket = new BucketManager('user-banners');
-export const userBannerBucket = new BucketManager('user-avatars');
-export const serverIconBucket = new BucketManager('server-banners');
-export const serverBannerBucket = new BucketManager('server-icons');
+export const userAvatarBucket = new BucketManager('user-avatars');
+export const userBannerBucket = new BucketManager('user-banners');
+export const serverIconBucket = new BucketManager('server-icons');
+export const serverBannerBucket = new BucketManager('server-banners');
