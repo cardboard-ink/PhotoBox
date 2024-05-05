@@ -1,11 +1,15 @@
 import { userAvatarBucket, userBannerBucket, serverBannerBucket, serverIconBucket } from "./minio"
 import puppeteer from "puppeteer";
 
+import PQueue from 'p-queue';
+
 const browser = await puppeteer.launch({ 
     headless: true,
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
     executablePath: "/usr/bin/chromium",
 })
+
+export const scrapeQueue = new PQueue({concurrency: 3});
 
 export const guildedUserProfileScrape: (id: string, getElement: 'avatar' | 'banner') => Promise<Blob|Error> = async (id: string, getElement: 'avatar' | 'banner') => {
     try {

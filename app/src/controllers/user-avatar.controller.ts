@@ -1,19 +1,19 @@
 import { Elysia, t } from "elysia"
-import { userAvatarBucket, guildedUserProfileScrape, streamToBuffer } from "../libs"
+import { userAvatarBucket, guildedUserProfileScrape, streamToBuffer, scrapeQueue } from "../libs"
 
 export const userAvatarController = new Elysia()
     .get('/:id', async ({ params }) => {
         if (await userAvatarBucket.checkAssetExists(params.id)) {
             const lastModified = await userAvatarBucket.getAssetLastModified(params.id)
             if (Date.now() - lastModified.valueOf() > 5 * 60 * 1000) {
-                guildedUserProfileScrape(params.id, 'avatar')
+                scrapeQueue.add(() => guildedUserProfileScrape(params.id, 'avatar'))
             }
             const avatar = await userAvatarBucket.getAsset(params.id)
             const res = new Response(await streamToBuffer(avatar), { headers: { 'Content-Type': 'image/webp' } })
             return res
         }
-        const imageBlob = await guildedUserProfileScrape(params.id, 'avatar')
-        if (imageBlob instanceof Error) {
+        const imageBlob = await scrapeQueue.add(async () => await guildedUserProfileScrape(params.id, 'avatar'), {priority: 1})
+        if (imageBlob instanceof Error || !imageBlob) {
             return new Response('User not found', { status: 404 })
         }
         const res = new Response(imageBlob, { headers: { 'Content-Type': 'image/webp' } })
