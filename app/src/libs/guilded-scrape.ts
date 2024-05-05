@@ -7,7 +7,11 @@ export const guildedUserProfileScrape = async (id: string, getElement: 'avatar' 
     console.log('Reached Scraper')
     const getClass = getElement === 'avatar' ? '.UserProfilePictureControl-picture' : '.UserProfileBackground-image'
     console.log('launching puppeteer')
-    const browser = await puppeteer.launch()
+    const browser = await puppeteer.launch().catch((e) => {
+        console.error(e)
+        return
+    })
+    if (!browser) return
     console.log('puppeteer launched')
     browserInstances.push(browser)
     console.log('opening new page')
