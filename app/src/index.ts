@@ -33,7 +33,8 @@ try {
     }))
     .onStop(gracefulShutdown)
     .onResponse(requestLogger)
-    .onError(({ code, error, set }) => ErrorMessages(code, error, set));
+    .onError(({ code, error, set }) => ErrorMessages(code, error, set))
+    .get('/heartbeat', () => 'ok');
   
   process.on('SIGINT', app.stop);
   process.on('SIGTERM', app.stop);
