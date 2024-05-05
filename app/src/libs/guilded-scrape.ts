@@ -12,7 +12,7 @@ export const guildedUserProfileScrape: (id: string, getElement: 'avatar' | 'bann
         const getClass = getElement === 'avatar' ? '.ProgressiveLoadedImage-container.ProgressiveLoadedImage-container-progressive-loaded.ProgressiveLoadedImage-container-src-loaded>.UserProfilePictureControl-picture' : '.ProgressiveLoadedImage-container.ProgressiveLoadedImage-container-progressive-loaded.ProgressiveLoadedImage-container-src-loaded.ProgressiveLoadedImage-container-cover>.UserProfileBackground-image'
         const page = await browser.newPage()
         await page.goto(`https://www.guilded.gg/profile/${id}`)
-        await page.waitForSelector(getClass)
+        await page.waitForSelector(getClass, { timeout: 7000 })
         const src = await page.$eval(getClass, (el: any) => el.src)
         if (getElement === 'avatar') {
             await userAvatarBucket.uploadImage(id, src)
@@ -31,11 +31,7 @@ export const guildedServerProfileScrape: (id: string, getElement: 'icon' | 'bann
         const getClass = getElement === 'icon' ? '.ProgressiveLoadedImage-container.ProgressiveLoadedImage-container-progressive-loaded.ProgressiveLoadedImage-container-src-loaded>.TeamPlaqueV2-profile-pic' : '.ProgressiveLoadedImage-container.ProgressiveLoadedImage-container-progressive-loaded.ProgressiveLoadedImage-container-src-loaded>.TeamOverviewBanner-banner.TeamPageBanner-overview-banner'
         const page = await browser.newPage()
         await page.goto(`https://www.guilded.gg/teams/${id}/overview`)
-        await page.waitForSelector(getClass)
-        await page.waitForFunction((getClass) => {
-            const img = document.querySelector(getClass) as HTMLImageElement;
-            return img.complete && img.naturalHeight !== 0;
-        }, {}, getClass);
+        await page.waitForSelector(getClass, { timeout: 7000 })
         const src = await page.$eval(getClass, (el: any) => el.src)
         if (getElement === 'icon') {
             await serverIconBucket.uploadImage(id, src)
