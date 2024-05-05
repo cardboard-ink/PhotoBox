@@ -17,7 +17,20 @@ if (!process.env.MINIO_ACCESS_KEY || !process.env.MINIO_SECRET_KEY || !process.e
 try {
   const app = new Elysia()
     .use(cors())
-    .use(swagger())
+    .use(swagger({
+      documentation: {
+        info: {
+          title: 'PhotoBox API',
+          description: 'API for fetching user and server avatars and banners from Guilded. The internal CDN caches the images for 5 minutes for fast response. This API is scraping based and thus does not get rate limited by Guilded, however it tries to stay respectful and not overload the servers.',
+          version: '1.0.0',
+        },
+        servers: [{ url: 'https://photobox.cardboard.ink' }, { url: `http://localhost:${process.env.PORT}` }],
+        tags: [
+          { name: 'user', description: 'User related endpoints' },
+          { name: 'server', description: 'Server related endpoints' },
+        ],
+      }
+    }))
     .onStop(gracefulShutdown)
     .onResponse(requestLogger)
     .onError(({ code, error, set }) => ErrorMessages(code, error, set));

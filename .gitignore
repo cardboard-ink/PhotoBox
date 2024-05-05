@@ -1,1 +1,4 @@
 minio/data
+
+.env*
+!.env.example
