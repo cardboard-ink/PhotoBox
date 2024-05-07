@@ -11,9 +11,7 @@
     "@elysiajs/swagger": "^1.0.4",
     "chalk": "^5.3.0",
     "elysia": "latest",
-    "minio": "^8.0.0",
-    "p-queue": "^8.0.1",
-    "puppeteer": "^22.7.1"
+    "minio": "^8.0.0"
   },
   "devDependencies": {
     "bun-types": "latest"
