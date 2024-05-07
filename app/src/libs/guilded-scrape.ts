@@ -9,7 +9,6 @@ export const guildedMediaLink = (awsUrl?: string) => {
 
 export const guildedUserProfileScrape: (id: string, getElement: 'avatar' | 'banner') => Promise<Blob|Error> = async (id: string, getElement: 'avatar' | 'banner') => {
     const profile = await (await fetch(`https://www.guilded.gg/api/users/${id}/profilev3`, {keepalive: false})).json()
-    console.log(profile)
     if (!profile) {
         return new Error('User not found')
     }
