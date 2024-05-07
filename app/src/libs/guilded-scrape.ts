@@ -8,15 +8,12 @@ export const guildedMediaLink = (awsUrl?: string) => {
   }
 
 export const guildedUserProfileScrape: (id: string, getElement: 'avatar' | 'banner') => Promise<Blob|Error> = async (id: string, getElement: 'avatar' | 'banner') => {
-    console.log(`Scraping user: ${id} ${getElement}`)
-    console.log('trying profile')
     const profile = await (await fetch(`https://www.guilded.gg/api/users/${id}/profilev3`, {keepalive: false})).json()
     console.log(profile)
     if (!profile) {
         return new Error('User not found')
     }
     const src = getElement === 'avatar' ? guildedMediaLink(profile.profilePictureLg) : guildedMediaLink(profile.profileBannerLg)
-    console.log('signing', process.env.G_TOKEN)
     const signed = await(await fetch(`https://www.guilded.gg/api/v1/url-signatures`, {
         method: 'POST',
         headers: {
@@ -29,12 +26,10 @@ export const guildedUserProfileScrape: (id: string, getElement: 'avatar' | 'bann
         }),
         keepalive: false
     })).json()
-    console.log(signed)
     if (!signed) {
         return new Error('Failed to sign URL')
     }
     const signedSrc = signed.urlSignatures[0].url
-    console.log(signedSrc)
     if (getElement === 'avatar') {
         await userAvatarBucket.uploadImage(id, signedSrc)
     } else if (getElement === 'banner') {
@@ -44,7 +39,6 @@ export const guildedUserProfileScrape: (id: string, getElement: 'avatar' | 'bann
 }
 
 export const guildedServerProfileScrape: (id: string, getElement: 'icon' | 'banner') => Promise<Blob | Error> = async (id, getElement) => {
-    console.log(`Scraping server: ${id} ${getElement}`)
     try {
         const server = await (await fetch(`https://www.guilded.gg/api/teams/${id}/info`, {keepalive: false})).json()
         if (!server) {
