@@ -1,17 +1,17 @@
 import { Elysia, t } from "elysia"
-import { serverBannerBucket, guildedServerProfileScrape, streamToBuffer, scrapeQueue } from "../libs"
+import { serverBannerBucket, guildedServerProfileScrape, streamToBuffer } from "../libs"
 
 export const serverBannerController = new Elysia()
     .get('/:id', async ({ params }) => {
         if (await serverBannerBucket.checkAssetExists(params.id)) {
             const lastModified = await serverBannerBucket.getAssetLastModified(params.id)
-            if (Date.now() - lastModified.valueOf() > 5 * 60 * 1000) {
-                scrapeQueue.add(async () => guildedServerProfileScrape(params.id, 'banner'))
+            if (Date.now() - lastModified.valueOf() > 24 * 60 * 60 * 1000) {
+                guildedServerProfileScrape(params.id, 'banner')
             }
             const banner = await serverBannerBucket.getAsset(params.id)
             return new Response(await streamToBuffer(banner), { headers: { 'Content-Type': 'image/webp' } })
         }
-        const imageBlob = await scrapeQueue.add(async () => await guildedServerProfileScrape(params.id, 'banner'), {priority: 1})
+        const imageBlob = await guildedServerProfileScrape(params.id, 'banner')
         if (imageBlob instanceof Error || !imageBlob) {
             return new Response('User not found', { status: 404 })
         }

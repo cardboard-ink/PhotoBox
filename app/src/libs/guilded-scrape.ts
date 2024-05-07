@@ -1,49 +1,78 @@
 import { userAvatarBucket, userBannerBucket, serverBannerBucket, serverIconBucket } from "./minio"
-import puppeteer from "puppeteer";
 
-import PQueue from 'p-queue';
-
-const browser = await puppeteer.launch({ 
-    headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
-    executablePath: "/usr/bin/chromium",
-})
-
-export const scrapeQueue = new PQueue({concurrency: 3});
+export const guildedMediaLink = (awsUrl?: string) => {
+    // replace https://s3-us-west-2.amazonaws.com/www.guilded.gg with https://cdn.gilcdn.com 
+    // keep everything else same
+    if (!awsUrl) return awsUrl;
+    return awsUrl.replace('https://s3-us-west-2.amazonaws.com/www.guilded.gg', 'https://cdn.gilcdn.com');
+  }
 
 export const guildedUserProfileScrape: (id: string, getElement: 'avatar' | 'banner') => Promise<Blob|Error> = async (id: string, getElement: 'avatar' | 'banner') => {
-    try {
-        const getClass = getElement === 'avatar' ? '.ProgressiveLoadedImage-container.ProgressiveLoadedImage-container-progressive-loaded.ProgressiveLoadedImage-container-src-loaded>.UserProfilePictureControl-picture' : '.ProgressiveLoadedImage-container.ProgressiveLoadedImage-container-progressive-loaded.ProgressiveLoadedImage-container-src-loaded.ProgressiveLoadedImage-container-cover>.UserProfileBackground-image'
-        const page = await browser.newPage()
-        await page.goto(`https://www.guilded.gg/profile/${id}`)
-        await page.waitForSelector(getClass, { timeout: 7000 })
-        const src = await page.$eval(getClass, (el: any) => el.src)
-        if (getElement === 'avatar') {
-            await userAvatarBucket.uploadImage(id, src)
-        } else if (getElement === 'banner') {
-            await userBannerBucket.uploadImage(id, src)
-        }
-        await page.close()
-        return await (await fetch(src)).blob()
-    } catch (e) {
+    console.log(`Scraping user: ${id} ${getElement}`)
+    console.log('trying profile')
+    const profile = await (await fetch(`https://www.guilded.gg/api/users/${id}/profilev3`, {keepalive: false})).json()
+    console.log(profile)
+    if (!profile) {
         return new Error('User not found')
     }
+    const src = getElement === 'avatar' ? guildedMediaLink(profile.profilePictureLg) : guildedMediaLink(profile.profileBannerLg)
+    console.log('signing', process.env.G_TOKEN)
+    const signed = await(await fetch(`https://www.guilded.gg/api/v1/url-signatures`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': `Bearer ${process.env.G_TOKEN}`
+        },
+        body: JSON.stringify({
+            urls: [src]
+        }),
+        keepalive: false
+    })).json()
+    console.log(signed)
+    if (!signed) {
+        return new Error('Failed to sign URL')
+    }
+    const signedSrc = signed.urlSignatures[0].url
+    console.log(signedSrc)
+    if (getElement === 'avatar') {
+        await userAvatarBucket.uploadImage(id, signedSrc)
+    } else if (getElement === 'banner') {
+        await userBannerBucket.uploadImage(id, signedSrc)
+    }
+    return await (await fetch(signedSrc)).blob()
 }
 
 export const guildedServerProfileScrape: (id: string, getElement: 'icon' | 'banner') => Promise<Blob | Error> = async (id, getElement) => {
+    console.log(`Scraping server: ${id} ${getElement}`)
     try {
-        const getClass = getElement === 'icon' ? '.ProgressiveLoadedImage-container.ProgressiveLoadedImage-container-progressive-loaded.ProgressiveLoadedImage-container-src-loaded>.TeamPlaqueV2-profile-pic' : '.ProgressiveLoadedImage-container.ProgressiveLoadedImage-container-progressive-loaded.ProgressiveLoadedImage-container-src-loaded>.TeamOverviewBanner-banner.TeamPageBanner-overview-banner'
-        const page = await browser.newPage()
-        await page.goto(`https://www.guilded.gg/teams/${id}/overview`)
-        await page.waitForSelector(getClass, { timeout: 7000 })
-        const src = await page.$eval(getClass, (el: any) => el.src)
-        if (getElement === 'icon') {
-            await serverIconBucket.uploadImage(id, src)
-        } else if (getElement === 'banner') {
-            await serverBannerBucket.uploadImage(id, src)
+        const server = await (await fetch(`https://www.guilded.gg/api/teams/${id}/info`, {keepalive: false})).json()
+        if (!server) {
+            return new Error('Server not found')
         }
-        await page.close()
-        return await (await fetch(src)).blob()
+        const src = getElement === 'icon' ? guildedMediaLink(server.profilePicture) : guildedMediaLink(server.teamDashImage)
+        const signed = await(await fetch(`https://www.guilded.gg/api/v1/url-signatures`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization': `Bearer ${process.env.G_TOKEN}`
+            },
+            body: JSON.stringify({
+                urls: [src]
+            }),
+            keepalive: false
+        })).json()
+        if (!signed) {
+            return new Error('Failed to sign URL')
+        }
+        const signedSrc = signed.urlSignatures[0].url
+        if (getElement === 'icon') {
+            await serverIconBucket.uploadImage(id, signedSrc)
+        } else if (getElement === 'banner') {
+            await serverBannerBucket.uploadImage(id, signedSrc)
+        }
+        return await (await fetch(signedSrc)).blob()
     } catch (e) {
         return new Error('Server not found')
     }

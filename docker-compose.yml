@@ -32,6 +32,7 @@ services:
       MINIO_PORT: 9000
       MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:?Enter the Minio Access Key from the Admin Dashboard}
       MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:?Enter the Minio Secret Key from the Admin Dashboard}
+      G_TOKEN: ${G_TOKEN:?Enter the Guilded Token}
     build: 
       context: .
       dockerfile: ./docker/app.dockerfile
