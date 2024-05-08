@@ -7,8 +7,7 @@ export const userAvatarController = new Elysia()
             console.log('User avatar exists')
             const lastModified = await userAvatarBucket.getAssetLastModified(params.id)
             if (Date.now() - lastModified.valueOf() > 24 * 60 * 60 * 1000) {
-                console.log('User avatar is older than 24 hours')
-                guildedUserProfileScrape(params.id, 'avatar')
+                (async () => guildedUserProfileScrape(params.id, 'avatar'))().catch((e) => console.error(e))
             }
             console.log('Sending cached avatar')
             const avatar = await userAvatarBucket.getAsset(params.id)

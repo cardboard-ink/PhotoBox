@@ -25,7 +25,7 @@ export const guildedUserProfileScrape: (id: string, getElement: 'avatar' | 'bann
         }),
         keepalive: false
     })).json()
-    if (!signed) {
+    if (!signed || !signed.urlSignatures || !signed.urlSignatures[0] || !signed.urlSignatures[0].url) {
         return new Error('Failed to sign URL')
     }
     const signedSrc = signed.urlSignatures[0].url
@@ -56,7 +56,7 @@ export const guildedServerProfileScrape: (id: string, getElement: 'icon' | 'bann
             }),
             keepalive: false
         })).json()
-        if (!signed) {
+        if (!signed || !signed.urlSignatures || !signed.urlSignatures[0] || !signed.urlSignatures[0].url) {
             return new Error('Failed to sign URL')
         }
         const signedSrc = signed.urlSignatures[0].url

@@ -6,7 +6,7 @@ export const serverIconController = new Elysia()
         if (await serverIconBucket.checkAssetExists(params.id)) {
             const lastModified = await serverIconBucket.getAssetLastModified(params.id)
             if (Date.now() - lastModified.valueOf() > 24 * 60 * 60 * 1000) {
-                guildedServerProfileScrape(params.id, 'icon')
+                (async () => guildedServerProfileScrape(params.id, 'icon'))().catch((e) => console.error(e))
             }
             const avatar = await serverIconBucket.getAsset(params.id)
             const res = new Response(await streamToBuffer(avatar), { headers: { 'Content-Type': 'image/webp' } })
