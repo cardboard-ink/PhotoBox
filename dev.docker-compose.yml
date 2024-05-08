@@ -35,7 +35,7 @@ services:
       G_TOKEN: ${G_TOKEN:?Enter the Guilded Token}
     build: 
       context: .
-      dockerfile: ./docker/prod/app.dockerfile
+      dockerfile: ./docker/dev/app.dockerfile
     container_name: photobox-app
     volumes:
       - ./app:/app

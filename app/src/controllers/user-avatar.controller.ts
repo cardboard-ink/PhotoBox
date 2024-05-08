@@ -4,12 +4,10 @@ import { userAvatarBucket, guildedUserProfileScrape, streamToBuffer } from "../l
 export const userAvatarController = new Elysia()
     .get('/:id', async ({ params }) => {
         if (await userAvatarBucket.checkAssetExists(params.id)) {
-            console.log('User avatar exists')
             const lastModified = await userAvatarBucket.getAssetLastModified(params.id)
             if (Date.now() - lastModified.valueOf() > 24 * 60 * 60 * 1000) {
                 (async () => guildedUserProfileScrape(params.id, 'avatar'))().catch((e) => console.error(e))
             }
-            console.log('Sending cached avatar')
             const avatar = await userAvatarBucket.getAsset(params.id)
             const res = new Response(await streamToBuffer(avatar), { headers: { 'Content-Type': 'image/webp' } })
             return res

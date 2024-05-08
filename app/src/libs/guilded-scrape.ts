@@ -43,7 +43,7 @@ export const guildedServerProfileScrape: (id: string, getElement: 'icon' | 'bann
         if (!server) {
             return new Error('Server not found')
         }
-        const src = getElement === 'icon' ? guildedMediaLink(server.profilePicture) : guildedMediaLink(server.teamDashImage)
+        const src = getElement === 'icon' ? guildedMediaLink(server.team.profilePicture) : guildedMediaLink(server.team.teamDashImage)
         const signed = await(await fetch(`https://www.guilded.gg/api/v1/url-signatures`, {
             method: 'POST',
             headers: {
