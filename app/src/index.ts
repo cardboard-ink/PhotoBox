@@ -2,7 +2,7 @@ import { Elysia } from "elysia";
 import cors from '@elysiajs/cors'
 import swagger from "@elysiajs/swagger";
 import { ErrorMessages, bootLogger, gracefulShutdown, requestLogger } from "./libs";
-import { userAvatarController, userBannerController, serverIconController, serverBannerController } from "./controllers";
+import { userAvatarController, userBannerController, serverIconController, serverBannerController, botIconController, botBannerController } from "./controllers";
 
 if (!process.env.PORT) {
   console.log('PORT is not defined');
@@ -46,6 +46,11 @@ try {
   app.group('/server', (app) => {
     app.group('/icon', (app) => app.use(serverIconController))
     app.group('/banner', (app) => app.use(serverBannerController))
+    return app
+  })
+  app.group('/bot', (app) => {
+    app.group('/icon', (app) => app.use(botIconController))
+    app.group('/banner', (app) => app.use(botBannerController))
     return app
   })
   app.listen(process.env.PORT!, bootLogger);

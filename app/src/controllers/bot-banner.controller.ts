@@ -1,19 +1,19 @@
 import { Elysia, t } from "elysia"
-import { serverBannerBucket, guildedServerProfileScrape, streamToBuffer } from "../libs"
+import { botBannerBucket, guildedBotProfileScrape, streamToBuffer } from "../libs"
 
-export const serverBannerController = new Elysia()
+export const botBannerController = new Elysia()
     .get('/:id', async ({ params }) => {
-        if (await serverBannerBucket.checkAssetExists(params.id)) {
-            const lastModified = await serverBannerBucket.getAssetLastModified(params.id)
+        if (await botBannerBucket.checkAssetExists(params.id)) {
+            const lastModified = await botBannerBucket.getAssetLastModified(params.id)
             if (Date.now() - lastModified.valueOf() > 24 * 60 * 60 * 1000) {
-                (async () => guildedServerProfileScrape(params.id, 'banner'))().catch((e) => console.error(e))
+                (async () => guildedBotProfileScrape(params.id, 'banner'))().catch((e) => console.error(e))
             }
-            const banner = await serverBannerBucket.getAsset(params.id)
+            const banner = await botBannerBucket.getAsset(params.id)
             return new Response(await streamToBuffer(banner), { headers: { 'Content-Type': 'image/webp' } })
         }
-        const imageBlob = await guildedServerProfileScrape(params.id, 'banner')
+        const imageBlob = await guildedBotProfileScrape(params.id, 'banner')
         if (imageBlob instanceof Error || !imageBlob) {
-            return new Response('Server not found', { status: 404 })
+            return new Response('Bot not found', { status: 404 })
         }
         return new Response(imageBlob, { headers: { 'Content-Type': 'image/webp' } })
     }, {
@@ -30,10 +30,10 @@ export const serverBannerController = new Elysia()
                     minSize: '0k'
                 }),
         },
-        {description: 'The server banner image.'}),
+        {description: 'The bot banner image.'}),
         detail: {
-            description: 'Get the banner of a server by its ID.',
-            summary: 'Get server banner by ID.',
-            tags: ['server'],
+            description: 'Get the banner of a bot by its ID.',
+            summary: 'Get bot banner by ID.',
+            tags: ['bot'],
         }
     })

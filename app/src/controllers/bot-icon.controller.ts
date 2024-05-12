@@ -1,20 +1,20 @@
 import { Elysia, t } from "elysia"
-import { serverIconBucket, guildedServerProfileScrape, streamToBuffer } from "../libs"
+import { botIconBucket, guildedBotProfileScrape, streamToBuffer } from "../libs"
 
-export const serverIconController = new Elysia()
+export const botIconController = new Elysia()
     .get('/:id', async ({ params }) => {
-        if (await serverIconBucket.checkAssetExists(params.id)) {
-            const lastModified = await serverIconBucket.getAssetLastModified(params.id)
+        if (await botIconBucket.checkAssetExists(params.id)) {
+            const lastModified = await botIconBucket.getAssetLastModified(params.id)
             if (Date.now() - lastModified.valueOf() > 24 * 60 * 60 * 1000) {
-                (async () => guildedServerProfileScrape(params.id, 'icon'))().catch((e) => console.error(e))
+                (async () => guildedBotProfileScrape(params.id, 'icon'))().catch((e) => console.error(e))
             }
-            const avatar = await serverIconBucket.getAsset(params.id)
+            const avatar = await botIconBucket.getAsset(params.id)
             const res = new Response(await streamToBuffer(avatar), { headers: { 'Content-Type': 'image/webp' } })
             return res
         }
-        const imageBlob = await guildedServerProfileScrape(params.id, 'icon')
+        const imageBlob = await guildedBotProfileScrape(params.id, 'icon')
         if (imageBlob instanceof Error || !imageBlob) {
-            return new Response('Server not found', { status: 404 })
+            return new Response('Bot not found', { status: 404 })
         }
         const res = new Response(imageBlob, { headers: { 'Content-Type': 'image/webp' } })
         return res
@@ -32,11 +32,11 @@ export const serverIconController = new Elysia()
                     minSize: '0k'
                 }),
         },
-        {description: 'The server icon image.'}),
+        {description: 'The bot icon image.'}),
         detail: {
-            description: "Get the server icon of a server by it's ID.",
-            summary: 'Get server icon by ID.',
-            tags: ['server'],
+            description: "Get the bot icon of a bot by it's ID.",
+            summary: 'Get bot icon by ID.',
+            tags: ['bot'],
         }
     })
 

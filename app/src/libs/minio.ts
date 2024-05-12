@@ -114,4 +114,6 @@ export class BucketManager {
 export const userAvatarBucket = new BucketManager('user-avatars');
 export const userBannerBucket = new BucketManager('user-banners');
 export const serverIconBucket = new BucketManager('server-icons');
+export const botIconBucket = new BucketManager('bot-icons');
+export const botBannerBucket = new BucketManager('bot-banners');
 export const serverBannerBucket = new BucketManager('server-banners');
