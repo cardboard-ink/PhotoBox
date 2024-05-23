@@ -5,7 +5,7 @@ export const botIconController = new Elysia()
     .get('/:id', async ({ params }) => {
         if (await botIconBucket.checkAssetExists(params.id)) {
             const lastModified = await botIconBucket.getAssetLastModified(params.id)
-            if (Date.now() - lastModified.valueOf() > 24 * 60 * 60 * 1000) {
+            if (Date.now() - lastModified.valueOf() > 5 * 60 * 1000) {
                 (async () => guildedBotProfileScrape(params.id, 'icon'))().catch((e) => console.error(e))
             }
             const avatar = await botIconBucket.getAsset(params.id)

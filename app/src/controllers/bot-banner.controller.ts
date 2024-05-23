@@ -5,7 +5,7 @@ export const botBannerController = new Elysia()
     .get('/:id', async ({ params }) => {
         if (await botBannerBucket.checkAssetExists(params.id)) {
             const lastModified = await botBannerBucket.getAssetLastModified(params.id)
-            if (Date.now() - lastModified.valueOf() > 24 * 60 * 60 * 1000) {
+            if (Date.now() - lastModified.valueOf() > 5 * 60 * 1000) {
                 (async () => guildedBotProfileScrape(params.id, 'banner'))().catch((e) => console.error(e))
             }
             const banner = await botBannerBucket.getAsset(params.id)

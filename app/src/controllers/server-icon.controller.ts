@@ -5,7 +5,7 @@ export const serverIconController = new Elysia()
     .get('/:id', async ({ params }) => {
         if (await serverIconBucket.checkAssetExists(params.id)) {
             const lastModified = await serverIconBucket.getAssetLastModified(params.id)
-            if (Date.now() - lastModified.valueOf() > 24 * 60 * 60 * 1000) {
+            if (Date.now() - lastModified.valueOf() > 5 * 60 * 1000) {
                 (async () => guildedServerProfileScrape(params.id, 'icon'))().catch((e) => console.error(e))
             }
             const avatar = await serverIconBucket.getAsset(params.id)
