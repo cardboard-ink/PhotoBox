@@ -1,4 +1,4 @@
-import { NotFoundError, ParseError, ValidationError } from "elysia";
+import type { NotFoundError, ParseError, ValidationError } from "elysia";
 import type { ElysiaCustomStatusResponse } from "elysia/error";
 export function handleNotFoundError(error: Readonly<NotFoundError>) {
 	return { message: error.message || "Not Found :(" };
