@@ -1,0 +1,29 @@
+name: "Check Code"
+
+on:
+    pull_request:
+    push:
+        branches:
+            - "dev"
+            - "main"
+
+jobs:
+    check-code:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 22.x
+
+            - name: Install Dependencies
+              run: |
+                  echo "installing bun"
+                  npm install -g bun
+                  echo "installing deps for packages"
+                  bun i
+
+            - name: Check Code
+              run: bun ci::check
