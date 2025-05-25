@@ -1,34 +1,28 @@
-import { Elysia } from "elysia";
 import cors from "@elysiajs/cors";
 import swagger from "@elysiajs/swagger";
+import { Elysia } from "elysia";
 import {
-	ErrorMessages,
-	bootLogger,
-	gracefulShutdown,
-	requestLogger,
-} from "./libs";
-import {
+	botBannerController,
+	botIconController,
+	serverBannerController,
+	serverIconController,
 	userAvatarController,
 	userBannerController,
-	serverIconController,
-	serverBannerController,
-	botIconController,
-	botBannerController,
 } from "./controllers";
+import { ErrorMessages, bootLogger, gracefulShutdown } from "./libs";
 
-if (!process.env.PORT) {
+if (!Bun.env.PORT) {
 	console.log("PORT is not defined");
 	process.exit(1);
 }
 
 if (
-	!process.env.MINIO_ACCESS_KEY ||
-	!process.env.MINIO_SECRET_KEY ||
-	!process.env.MINIO_PORT ||
-	!process.env.MINIO_HOST
+	!Bun.env.SEAWEED_ENDPOINT ||
+	!Bun.env.SEAWEED_ACCESS_KEY ||
+	!Bun.env.SEAWEED_SECRET_KEY
 ) {
 	console.log(
-		"MINIO_ACCESS_KEY, MINIO_SECRET_KEY, MINIO_PORT and/or MINIO_HOST are not defined",
+		"SEAWEED_ENDPOINT, SEAWEED_ACCESS_KEY, SEAWEED_SECRET_KEY are not defined",
 	);
 	process.exit(1);
 }
@@ -80,7 +74,7 @@ try {
 		app.group("/banner", (app) => app.use(botBannerController));
 		return app;
 	});
-	app.listen(process.env.PORT!, bootLogger);
+	app.listen(Bun.env.PORT, bootLogger);
 } catch (e) {
 	console.log("error booting the server");
 	console.error(e);
