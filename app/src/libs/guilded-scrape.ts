@@ -7,6 +7,18 @@ import {
 	userBannerBucket,
 } from "../stores/s3";
 
+type ProfileType = "avatar" | "banner" | "icon";
+type BucketMap = Record<string, Bun.S3Client>;
+
+const bucketMap: BucketMap = {
+	userAvatar: userAvatarBucket,
+	userBanner: userBannerBucket,
+	botIcon: botIconBucket,
+	botBanner: botBannerBucket,
+	serverIcon: serverIconBucket,
+	serverBanner: serverBannerBucket,
+};
+
 export const guildedMediaLink = (awsUrl?: string) => {
 	// replace https://s3-us-west-2.amazonaws.com/www.guilded.gg with https://cdn.gilcdn.com
 	// keep everything else same
@@ -17,19 +29,40 @@ export const guildedMediaLink = (awsUrl?: string) => {
 	);
 };
 
-const uploadToBucket = async (
-	bucket: Bun.S3Client,
-	id: string,
-	url: string,
+const fetchAndSignUrl: (src: string) => Promise<string> = async (
+	src: string,
 ) => {
-	const res = await fetch(url);
-	const blob = await res.blob();
+	const signed = await (
+		await fetch("https://www.guilded.gg/api/v1/url-signatures", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				Accept: "application/json",
+				Authorization: `Bearer ${process.env.G_TOKEN}`,
+			},
+			body: JSON.stringify({ urls: [src] }),
+			keepalive: false,
+		})
+	).json();
+	if (
+		!signed ||
+		!signed.urlSignatures ||
+		!signed.urlSignatures[0] ||
+		!signed.urlSignatures[0].url
+	) {
+		throw new Error("Failed to sign URL");
+	}
+	return signed.urlSignatures[0].url;
+};
+
+const uploadToBucket = async (bucket: Bun.S3Client, id: string, blob: Blob) => {
 	// Convert the ReadableStream<Uint8Array> to a Buffer
 	const reader = blob.stream().getReader();
 	const chunks = [];
-	let chunk;
-	while (!(chunk = await reader.read()).done) {
+	let chunk = await reader.read();
+	while (!chunk.done) {
 		chunks.push(chunk.value);
+		chunk = await reader.read();
 	}
 	const buffer = Buffer.concat(chunks);
 	await bucket.write(`${id}.webp`, buffer, {
@@ -37,66 +70,39 @@ const uploadToBucket = async (
 	});
 };
 
-export const guildedUserProfileScrape: (
+async function handleProfileScrape(
+	id: string,
+	getElement: ProfileType,
+	src: string | undefined,
+	bucketKey: string,
+): Promise<Blob> {
+	if (!src) throw new Error("Source not found");
+	const blob = await (await fetch(await fetchAndSignUrl(src))).blob();
+	await uploadToBucket(bucketMap[bucketKey], id, blob);
+	return blob;
+}
+
+export const guildedUserProfileScrape = async (
 	id: string,
 	getElement: "avatar" | "banner",
-) => Promise<Blob | Error> = async (
-	id: string,
-	getElement: "avatar" | "banner",
-) => {
-	const profile = (await (
+): Promise<Blob> => {
+	const profile = await (
 		await fetch(`https://www.guilded.gg/api/users/${id}`, {
 			keepalive: false,
 		})
-	).json()) as {
-		user: {
-			profilePictureLg?: string;
-			profileBannerLg?: string;
-		}
-	};
-	if (!profile) {
-		return new Error("User not found");
-	}
+	).json();
 	const src =
 		getElement === "avatar"
 			? guildedMediaLink(profile.user.profilePictureLg)
 			: guildedMediaLink(profile.user.profileBannerLg);
-	const signed = (await (
-		await fetch(`https://www.guilded.gg/api/v1/url-signatures`, {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-				Accept: "application/json",
-				Authorization: `Bearer ${process.env.G_TOKEN}`,
-			},
-			body: JSON.stringify({
-				urls: [src],
-			}),
-			keepalive: false,
-		})
-	).json()) as {urlSignatures: {url: string}[]};
-	if (
-		!signed ||
-		!signed.urlSignatures ||
-		!signed.urlSignatures[0] ||
-		!signed.urlSignatures[0].url
-	) {
-		return new Error("Failed to sign URL");
-	}
-	const signedSrc = signed.urlSignatures[0].url;
-	if (getElement === "avatar") {
-		// await userAvatarBucket.uploadImage(id, signedSrc);
-		await uploadToBucket(userAvatarBucket, id, signedSrc);
-	} else if (getElement === "banner") {
-		await uploadToBucket(userBannerBucket, id, signedSrc);
-	}
-	return await (await fetch(signedSrc)).blob();
+	const bucketKey = getElement === "avatar" ? "userAvatar" : "userBanner";
+	return handleProfileScrape(id, getElement, src, bucketKey);
 };
 
-export const guildedBotProfileScrape: (
+export const guildedBotProfileScrape = async (
 	id: string,
 	getElement: "icon" | "banner",
-) => Promise<Blob | Error> = async (id, getElement) => {
+): Promise<Blob> => {
 	const botUserProfile = await (
 		await fetch(`https://www.guilded.gg/api/users/${id}`, {
 			keepalive: false,
@@ -106,84 +112,24 @@ export const guildedBotProfileScrape: (
 		getElement === "icon"
 			? guildedMediaLink(botUserProfile.user.profilePicture)
 			: guildedMediaLink(botUserProfile.user.profileBannerLg);
-	const signed = await (
-		await fetch(`https://www.guilded.gg/api/v1/url-signatures`, {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-				Accept: "application/json",
-				Authorization: `Bearer ${process.env.G_TOKEN}`,
-			},
-			body: JSON.stringify({
-				urls: [src],
-			}),
+	const bucketKey = getElement === "icon" ? "botIcon" : "botBanner";
+	return handleProfileScrape(id, getElement, src, bucketKey);
+};
+
+export const guildedServerProfileScrape = async (
+	id: string,
+	getElement: "icon" | "banner",
+): Promise<Blob> => {
+	const server = await (
+		await fetch(`https://www.guilded.gg/api/teams/${id}/info`, {
 			keepalive: false,
 		})
 	).json();
-	if (
-		!signed ||
-		!signed.urlSignatures ||
-		!signed.urlSignatures[0] ||
-		!signed.urlSignatures[0].url
-	) {
-		return new Error("Failed to sign URL");
-	}
-	const signedSrc = signed.urlSignatures[0].url;
-	if (getElement === "icon") {
-		await uploadToBucket(botIconBucket, id, signedSrc);
-	} else if (getElement === "banner") {
-		await uploadToBucket(botBannerBucket, id, signedSrc);
-	}
-	return await (await fetch(signedSrc)).blob();
-};
-
-export const guildedServerProfileScrape: (
-	id: string,
-	getElement: "icon" | "banner",
-) => Promise<Blob | Error> = async (id, getElement) => {
-	try {
-		const server = await (
-			await fetch(`https://www.guilded.gg/api/teams/${id}/info`, {
-				keepalive: false,
-			})
-		).json();
-		if (!server) {
-			return new Error("Server not found");
-		}
-		const src =
-			getElement === "icon"
-				? guildedMediaLink(server.team.profilePicture)
-				: guildedMediaLink(server.team.teamDashImage);
-		const signed = await (
-			await fetch(`https://www.guilded.gg/api/v1/url-signatures`, {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-					Accept: "application/json",
-					Authorization: `Bearer ${process.env.G_TOKEN}`,
-				},
-				body: JSON.stringify({
-					urls: [src],
-				}),
-				keepalive: false,
-			})
-		).json();
-		if (
-			!signed ||
-			!signed.urlSignatures ||
-			!signed.urlSignatures[0] ||
-			!signed.urlSignatures[0].url
-		) {
-			return new Error("Failed to sign URL");
-		}
-		const signedSrc = signed.urlSignatures[0].url;
-		if (getElement === "icon") {
-			await uploadToBucket(serverIconBucket, id, signedSrc);
-		} else if (getElement === "banner") {
-			await uploadToBucket(serverBannerBucket, id, signedSrc);
-		}
-		return await (await fetch(signedSrc)).blob();
-	} catch (e) {
-		return new Error("Server not found");
-	}
+	if (!server) throw new Error("Server not found");
+	const src =
+		getElement === "icon"
+			? guildedMediaLink(server.team.profilePicture)
+			: guildedMediaLink(server.team.teamDashImage);
+	const bucketKey = getElement === "icon" ? "serverIcon" : "serverBanner";
+	return handleProfileScrape(id, getElement, src, bucketKey);
 };
