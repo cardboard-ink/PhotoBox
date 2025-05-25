@@ -1,0 +1,34 @@
+{
+  "name": "photobox",
+  "private": true,
+  "author": {
+    "name": "SoSweetHam",
+    "email": "ham@cardboard.ink"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@biomejs/biome": "1.9.4",
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "workspaces": [
+    "app"
+  ],
+  "scripts": {
+    "format": "bun --elide-lines 0 --filter '*' format ",
+    "check-format": "bun --elide-lines 0 --filter '*' check-format",
+    "ci::check-format": "bun --filter '*' check-format",
+    "lint": "bun --elide-lines 0 --filter '*' lint",
+    "check-lint": "bun --elide-lines 0 --filter '*' check-lint",
+    "ci::check-lint": "bun --filter '*' check-lint",
+    "check": "bun --elide-lines 0 --filter '*' check",
+    "check-fix": "bun --elide-lines 0 --filter '*' check-fix",
+    "ci::check": "bun --filter '*' check"
+  },
+  "packageManager": "bun@1.2.14",
+  "trustedDependencies": [
+    "@biomejs/biome"
+  ]
+}

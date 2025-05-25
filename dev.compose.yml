@@ -1,0 +1,32 @@
+services:
+  photobox-app:
+    environment:
+      PORT: ${PORT:?Enter the Port Number to Run the app on}
+      SEAWEED_ENDPOINT: ${SEAWEED_ENDPOINT:?Enter the SeaweedFS Endpoint}
+      SEAWEED_ACCESS_KEY: ${SEAWEED_ACCESS_KEY:?Enter the SeaweedFS Access Key}
+      SEAWEED_SECRET_KEY: ${SEAWEED_SECRET_KEY:?Enter the SeaweedFS Secret Key}
+      G_TOKEN: ${G_TOKEN:?Enter the Guilded Token}
+    build:
+      context: .
+      dockerfile: ./docker/dev/app.dockerfile
+    container_name: photobox-app
+    volumes:
+      - ./app:/app
+    ports:
+      - "${PORT}:${PORT}"
+    depends_on:
+      - photobox-seaweedfs
+  photobox-seaweedfs:
+    container_name: anime-api-seaweedfs
+    hostname: anime-api-seaweedfs
+    image: chrislusf/seaweedfs:3.85
+    restart: unless-stopped
+    volumes:
+      - ./seaweedfs/data:/data
+      - ./seaweedfs/s3_config.json:/etc/seaweedfs/s3_config.json
+    ports:
+      - "8333:8333"
+      - "9333:9333"
+      - "8080:8080"
+      - "8888:8888"
+    command: server -s3 -s3.config=/etc/seaweedfs/s3_config.json
