@@ -17,8 +17,8 @@ services:
     depends_on:
       - photobox-seaweedfs
   photobox-seaweedfs:
-    container_name: anime-api-seaweedfs
-    hostname: anime-api-seaweedfs
+    container_name: photobox-seaweedfs
+    hostname: photobox-seaweedfs
     image: chrislusf/seaweedfs:3.85
     restart: unless-stopped
     volumes:
@@ -29,4 +29,4 @@ services:
       - "9333:9333"
       - "8080:8080"
       - "8888:8888"
-    command: server -s3 -s3.config=/etc/seaweedfs/s3_config.json
+    command: server -volume.max=2 -master.volumeSizeLimitMB=1024 -s3 -s3.config=/etc/seaweedfs/s3_config.json
