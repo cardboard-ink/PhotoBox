@@ -7,7 +7,7 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "@biomejs/biome": "1.9.4",
+    "@biomejs/biome": "2.5.3",
     "@types/bun": "latest"
   },
   "peerDependencies": {
